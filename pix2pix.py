@@ -121,8 +121,8 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
             # save_image(make_grid(fake_b.detach()),"./images/fake_{}.png".format(i))
             images = fake_b.detach()
             for j in range(images.shape[0]):
-                save_img(images[j],"./images/fake_epoch{i}_{j}.png".format(i=i,j=j))
-        break
+                save_img(images[j],"./images/fake_epoch{epoch}_{i}_{j}.png".format(epoch=epoch,i=i,j=j))
+
 
     weights_path = "./weights/epoch_{}_weights".format(epoch)
     try:
