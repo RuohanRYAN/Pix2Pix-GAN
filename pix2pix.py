@@ -62,9 +62,9 @@ optimizer_d = optim.Adam(net_d.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999)
 plotter = VisdomLinePlotter(env_name="metrics")
 
 #### load weights
+Max = 0
 if(os.path.exists(w_path)):
     onlyfiles = [f.split("_")[1][0] for f in os.listdir(w_path)]
-    Max = 0
     for f in os.listdir(w_path):
         ep = f.split("_")[1][0]
         Max = max(Max,int(ep))
@@ -75,7 +75,7 @@ if(os.path.exists(w_path)):
     # os.join(os.join(w_path,"epoch_{}_weights".format(Max)),""
 #### visualize dataset #########
 
-for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
+for epoch in range(Max+1, opt.niter + opt.niter_decay + 1):
     loss_tot_d = []
     loss_tot_g = []
     for i,batch in enumerate(train_loader):
