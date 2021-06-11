@@ -41,7 +41,7 @@ parser.add_argument('--dataset', type=str,default="facades", help='name of the d
 
 print("=======> load dataset")
 opt = parser.parse_args()
-root_path = ".\\datasets\\"
+root_path = "./datasets/"
 train_dataset = get_training_set(root_path+opt.dataset, opt.direction)
 test_dataset = get_test_set(root_path+opt.dataset, opt.direction)
 train_loader = DataLoader(dataset=train_dataset,num_workers=opt.threads,batch_size=opt.batch_size,shuffle=True)
@@ -107,4 +107,4 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
             # save_image(make_grid(fake_b.detach()),".\\images\\fake_{}.png".format(i))
             images = fake_b.detach()
             for j in range(images.shape[0]):
-                save_img(images[j],".\\images\\fake_epoch{i}_{j}.png".format(i=i,j=j))
+                save_img(images[j],"./images/fake_epoch{i}_{j}.png".format(i=i,j=j))
