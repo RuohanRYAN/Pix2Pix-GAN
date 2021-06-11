@@ -42,6 +42,7 @@ parser.add_argument('--dataset', type=str,default="facades", help='name of the d
 print("=======> load dataset")
 opt = parser.parse_args()
 root_path = "./datasets/"
+w_path = "./weights/"
 train_dataset = get_training_set(root_path+opt.dataset, opt.direction)
 test_dataset = get_test_set(root_path+opt.dataset, opt.direction)
 train_loader = DataLoader(dataset=train_dataset,num_workers=opt.threads,batch_size=opt.batch_size,shuffle=True)
@@ -59,6 +60,19 @@ optimizer_g = optim.Adam(net_g.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999)
 optimizer_d = optim.Adam(net_d.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 
 plotter = VisdomLinePlotter(env_name="metrics")
+
+#### load weights
+if(os.path.exists(w_path)):
+    onlyfiles = [f.split("_")[1][0] for f in os.listdir(w_path)]
+    Max = 0
+    for f in os.listdir(w_path):
+        ep = f.split("_")[1][0]
+        Max = max(Max,int(ep))
+    epoch_w_path = os.path.join(w_path,"epoch_{}_weights".format(Max))
+    if(len(os.listdir(epoch_w_path))!=0):
+        net_g.load_state_dict(torch.load(os.path.join(epoch_w_path,"generator.pth")))
+        net_d.load_state_dict(torch.load(os.path.join(epoch_w_path,"discriminator.pth")))
+    # os.join(os.join(w_path,"epoch_{}_weights".format(Max)),""
 #### visualize dataset #########
 
 for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
@@ -104,7 +118,22 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
         plotter.plot('loss', 'd_loss', 'GAN Loss', i, loss_d.detach().data)
         plotter.plot('loss', 'g_loss', 'GAN Loss', i, loss_g.detach().data)
         if(i%10==0):
-            # save_image(make_grid(fake_b.detach()),".\\images\\fake_{}.png".format(i))
+            # save_image(make_grid(fake_b.detach()),"./images/fake_{}.png".format(i))
             images = fake_b.detach()
             for j in range(images.shape[0]):
                 save_img(images[j],"./images/fake_epoch{i}_{j}.png".format(i=i,j=j))
+        break
+
+    weights_path = "./weights/epoch_{}_weights".format(epoch)
+    try:
+        os.mkdir(w_path)
+    except FileExistsError:
+        pass
+    try:
+        os.mkdir(weights_path)
+    except FileExistsError:
+        pass
+
+    torch.save(net_g.state_dict(), os.path.join(weights_path,"generator.pth"))
+    torch.save(net_d.state_dict(), os.path.join(weights_path,"discriminator.pth"))
+    print("===> models saved to {}".format(weights_path))
