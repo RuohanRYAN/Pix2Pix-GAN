@@ -63,7 +63,7 @@ plotter = VisdomLinePlotter(env_name="metrics")
 #### load weights
 Max = 0
 if(os.path.exists(w_path)):
-    onlyfiles = [f.split("_")[1][0] for f in os.listdir(w_path)]
+    # onlyfiles = [f.split("_")[1][0] for f in os.listdir(w_path)]
     if(len(os.listdir(w_path))!=0):
         for f in os.listdir(w_path):
             ep = f.split("_")[1][0]
@@ -72,6 +72,7 @@ if(os.path.exists(w_path)):
         if(len(os.listdir(epoch_w_path))!=0):
             net_g.load_state_dict(torch.load(os.path.join(epoch_w_path,"generator.pth")))
             net_d.load_state_dict(torch.load(os.path.join(epoch_w_path,"discriminator.pth")))
+    print("===> loaded weights from epoch_{}".format(Max))
     # os.join(os.join(w_path,"epoch_{}_weights".format(Max)),""
 #### visualize dataset #########
 
