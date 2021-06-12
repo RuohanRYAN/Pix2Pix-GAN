@@ -18,7 +18,7 @@ from utils import save_img,VisdomLinePlotter,rebuild_grid
 global plotter
 parser = argparse.ArgumentParser(description='pix2pix-pytorch-implementation')
 # parser.add_argument('--dataset', required=True, help='facades')
-parser.add_argument('--batch_size', type=int, default=2, help='training batch size')
+parser.add_argument('--batch_size', type=int, default=8, help='training batch size')
 parser.add_argument('--test_batch_size', type=int, default=1, help='testing batch size')
 parser.add_argument('--direction', type=str, default='b2a', help='a2b or b2a')
 parser.add_argument('--input_nc', type=int, default=3, help='input image channels')
