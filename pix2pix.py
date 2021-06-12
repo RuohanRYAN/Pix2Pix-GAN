@@ -13,13 +13,12 @@ import matplotlib.pyplot as plt
 
 from network import define_G, define_D, GANLoss
 from data import get_training_set, get_test_set
-from utils import display_image
-from utils import save_img,VisdomLinePlotter
+from utils import save_img,VisdomLinePlotter,rebuild_grid
 
 global plotter
 parser = argparse.ArgumentParser(description='pix2pix-pytorch-implementation')
 # parser.add_argument('--dataset', required=True, help='facades')
-parser.add_argument('--batch_size', type=int, default=1, help='training batch size')
+parser.add_argument('--batch_size', type=int, default=4, help='training batch size')
 parser.add_argument('--test_batch_size', type=int, default=1, help='testing batch size')
 parser.add_argument('--direction', type=str, default='b2a', help='a2b or b2a')
 parser.add_argument('--input_nc', type=int, default=3, help='input image channels')
@@ -41,8 +40,8 @@ parser.add_argument('--dataset', type=str,default="facades", help='name of the d
 
 print("=======> load dataset")
 opt = parser.parse_args()
-root_path = "./datasets/"
-w_path = "./weights/"
+root_path = ".\\datasets\\"
+w_path = ".\\weights\\"
 train_dataset = get_training_set(root_path+opt.dataset, opt.direction)
 test_dataset = get_test_set(root_path+opt.dataset, opt.direction)
 train_loader = DataLoader(dataset=train_dataset,num_workers=opt.threads,batch_size=opt.batch_size,shuffle=True)
@@ -65,13 +64,14 @@ plotter = VisdomLinePlotter(env_name="metrics")
 Max = 0
 if(os.path.exists(w_path)):
     onlyfiles = [f.split("_")[1][0] for f in os.listdir(w_path)]
-    for f in os.listdir(w_path):
-        ep = f.split("_")[1][0]
-        Max = max(Max,int(ep))
-    epoch_w_path = os.path.join(w_path,"epoch_{}_weights".format(Max))
-    if(len(os.listdir(epoch_w_path))!=0):
-        net_g.load_state_dict(torch.load(os.path.join(epoch_w_path,"generator.pth")))
-        net_d.load_state_dict(torch.load(os.path.join(epoch_w_path,"discriminator.pth")))
+    if(len(os.listdir(w_path))!=0):
+        for f in os.listdir(w_path):
+            ep = f.split("_")[1][0]
+            Max = max(Max,int(ep))
+        epoch_w_path = os.path.join(w_path,"epoch_{}_weights".format(Max))
+        if(len(os.listdir(epoch_w_path))!=0):
+            net_g.load_state_dict(torch.load(os.path.join(epoch_w_path,"generator.pth")))
+            net_d.load_state_dict(torch.load(os.path.join(epoch_w_path,"discriminator.pth")))
     # os.join(os.join(w_path,"epoch_{}_weights".format(Max)),""
 #### visualize dataset #########
 
@@ -79,12 +79,6 @@ for epoch in range(Max+1, opt.niter + opt.niter_decay + 1):
     loss_tot_d = []
     loss_tot_g = []
     for i,batch in enumerate(train_loader):
-        # print(batch[0].shape)
-        # print(batch[0])
-        # display_image(batch[0])
-        # plt.show()
-        # display_image(batch[1])
-        # plt.show()
         real_a, real_b = batch[0].to(device), batch[1].to(device)
         fake_b = net_g(real_a)
 
@@ -112,19 +106,25 @@ for epoch in range(Max+1, opt.niter + opt.niter_decay + 1):
         loss_g.backward()
         loss_tot_g.append(loss_g.detach().data)
         optimizer_g.step()
-        print("===> Epoch[{}]({}/{}): Loss_D: {:.4f} Loss_G: {:.4f}".format(
+        print("===> Epoch[{}]({}\\{}): Loss_D: {:.4f} Loss_G: {:.4f}".format(
             epoch, i, len(train_loader), loss_d.item(), loss_g.item()))
-        # print(fake_b.shape)
         plotter.plot('loss', 'd_loss', 'GAN Loss', i, loss_d.detach().data)
         plotter.plot('loss', 'g_loss', 'GAN Loss', i, loss_g.detach().data)
         if(i%10==0):
-            # save_image(make_grid(fake_b.detach()),"./images/fake_{}.png".format(i))
-            images = fake_b.detach()
-            for j in range(images.shape[0]):
-                save_img(images[j],"./images/fake_epoch{epoch}_{i}_{j}.png".format(epoch=epoch,i=i,j=j))
+            fake_img = fake_b.detach()
+            real_img = real_a
+            fake_img = make_grid(rebuild_grid(fake_img),nrow=1)
+            real_img = make_grid(rebuild_grid(real_img),nrow=1)
+            img_path = os.path.join("images","epoch_{epoch}_{i}".format(epoch=epoch,i=i))
+            try:
+                os.makedirs(img_path)
+            except FileExistsError:
+                pass
+            save_image(fake_img,os.path.join(img_path,"fake.png"))
+            save_image(real_img,os.path.join(img_path,"real.png"))
+        break
 
-
-    weights_path = "./weights/epoch_{}_weights".format(epoch)
+    weights_path = os.path.join("weights","epoch_{}_weights".format(epoch))
     try:
         os.mkdir(w_path)
     except FileExistsError:
