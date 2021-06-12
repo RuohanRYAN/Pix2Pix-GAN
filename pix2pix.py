@@ -122,7 +122,7 @@ for epoch in range(Max+1, opt.niter + opt.niter_decay + 1):
                 pass
             save_image(fake_img,os.path.join(img_path,"fake.png"))
             save_image(real_img,os.path.join(img_path,"real.png"))
-        break
+
 
     weights_path = os.path.join("weights","epoch_{}_weights".format(epoch))
     try:
