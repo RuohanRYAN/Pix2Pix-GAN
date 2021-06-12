@@ -18,7 +18,7 @@ from utils import save_img,VisdomLinePlotter,rebuild_grid
 global plotter
 parser = argparse.ArgumentParser(description='pix2pix-pytorch-implementation')
 # parser.add_argument('--dataset', required=True, help='facades')
-parser.add_argument('--batch_size', type=int, default=4, help='training batch size')
+parser.add_argument('--batch_size', type=int, default=2, help='training batch size')
 parser.add_argument('--test_batch_size', type=int, default=1, help='testing batch size')
 parser.add_argument('--direction', type=str, default='b2a', help='a2b or b2a')
 parser.add_argument('--input_nc', type=int, default=3, help='input image channels')
@@ -58,7 +58,7 @@ criterionMSE = nn.MSELoss().to(device)
 optimizer_g = optim.Adam(net_g.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 optimizer_d = optim.Adam(net_d.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 
-plotter = VisdomLinePlotter(env_name="metrics")
+plotter = VisdomLinePlotter(env_name="metrics",port=8096)
 
 #### load weights
 Max = 0
@@ -73,7 +73,7 @@ if(os.path.exists(w_path)):
         if(len(os.listdir(epoch_w_path))!=0):
             net_g.load_state_dict(torch.load(os.path.join(epoch_w_path,"generator.pth")))
             net_d.load_state_dict(torch.load(os.path.join(epoch_w_path,"discriminator.pth")))
-    print("===> loaded weights from epoch_{}".format(Max))
+        print("===> loaded weights from epoch_{}".format(Max))
     # os.join(os.join(w_path,"epoch_{}_weights".format(Max)),""
 #### visualize dataset #########
 
@@ -112,11 +112,11 @@ for epoch in range(Max+1, opt.niter + opt.niter_decay + 1):
             epoch, i, len(train_loader), loss_d.item(), loss_g.item()))
         plotter.plot('loss', 'd_loss', 'GAN Loss', i, loss_d.detach().data)
         plotter.plot('loss', 'g_loss', 'GAN Loss', i, loss_g.detach().data)
+        plotter.image(real_a,"real")
+        plotter.image(fake_b,"fake")
         if(i%10==0):
             fake_img = fake_b.detach()
             real_img = real_a
-            fake_img = make_grid(rebuild_grid(fake_img),nrow=1)
-            real_img = make_grid(rebuild_grid(real_img),nrow=1)
             img_path = os.path.join("images","epoch_{epoch}_{i}".format(epoch=epoch,i=i))
             try:
                 os.makedirs(img_path)
@@ -125,6 +125,8 @@ for epoch in range(Max+1, opt.niter + opt.niter_decay + 1):
             save_image(fake_img,os.path.join(img_path,"fake.png"))
             save_image(real_img,os.path.join(img_path,"real.png"))
 
+            for i in range(fake_b.detach().shape[0]):
+                save_img(fake_b.detach()[i],os.path.join(img_path,"fake_dup_{}.png".format(i)))
 
     weights_path = os.path.join("weights","epoch_{}_weights".format(epoch))
     try:
