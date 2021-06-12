@@ -66,8 +66,8 @@ if(os.path.exists(w_path)):
     # onlyfiles = [f.split("_")[1][0] for f in os.listdir(w_path)]
     if(len(os.listdir(w_path))!=0):
         for f in os.listdir(w_path):
-            ep = f.split("_")[1][0]
-            print(f.split("_"))
+            ep = f.split("_")[1]
+            # print(f.split("_"))[1]
             Max = max(Max,int(ep))
         epoch_w_path = os.path.join(w_path,"epoch_{}_weights".format(Max))
         if(len(os.listdir(epoch_w_path))!=0):
