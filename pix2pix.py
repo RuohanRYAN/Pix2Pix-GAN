@@ -58,7 +58,7 @@ criterionMSE = nn.MSELoss().to(device)
 optimizer_g = optim.Adam(net_g.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 optimizer_d = optim.Adam(net_d.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 
-plotter = VisdomLinePlotter(env_name="metrics",port=8096)
+plotter = VisdomLinePlotter(env_name="metrics")
 
 #### load weights
 Max = 0
