@@ -40,8 +40,8 @@ parser.add_argument('--dataset', type=str,default="facades", help='name of the d
 
 print("=======> load dataset")
 opt = parser.parse_args()
-root_path = ".\\datasets\\"
-w_path = ".\\weights\\"
+root_path = "./datasets/"
+w_path = "./weights/"
 train_dataset = get_training_set(root_path+opt.dataset, opt.direction)
 test_dataset = get_test_set(root_path+opt.dataset, opt.direction)
 train_loader = DataLoader(dataset=train_dataset,num_workers=opt.threads,batch_size=opt.batch_size,shuffle=True)
