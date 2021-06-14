@@ -113,6 +113,7 @@ for epoch in range(Max+1, opt.niter + opt.niter_decay + 1):
         plotter.plot('loss', 'g_loss', 'GAN Loss', i, loss_g.detach().data)
         plotter.image(real_a,"real")
         plotter.image(fake_b,"fake")
+        plotter.image(real_b,"origin")
         if(i%10==0):
             fake_img = fake_b.detach()
             real_img = real_a
