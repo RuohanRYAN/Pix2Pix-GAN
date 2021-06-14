@@ -35,7 +35,7 @@ parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. de
 parser.add_argument('--cuda', action='store_true', help='use cuda?')
 parser.add_argument('--threads', type=int, default=0, help='number of threads for data loader to use')
 parser.add_argument('--seed', type=int, default=123, help='random seed to use. Default=123')
-parser.add_argument('--lamb', type=int, default=10, help='weight on L1 term in objective')
+parser.add_argument('--lamb', type=int, default=2, help='weight on L1 term in objective')
 parser.add_argument('--dataset', type=str,default="facades", help='name of the dataset')
 
 print("=======> load dataset")
@@ -63,7 +63,6 @@ plotter = VisdomLinePlotter(env_name="metrics")
 #### load weights
 Max = 0
 if(os.path.exists(w_path)):
-    # onlyfiles = [f.split("_")[1][0] for f in os.listdir(w_path)]
     if(len(os.listdir(w_path))!=0):
         for f in os.listdir(w_path):
             ep = f.split("_")[1]

@@ -68,22 +68,27 @@ class ResnetGenerator(nn.Module):
         self.inc=Inconv(input_nc,ngf,norm_layer,use_bias)
         self.down1=Down(ngf,ngf*2,norm_layer,use_bias)
         self.down2=Down(ngf*2,ngf*4,norm_layer,use_bias)
+        self.down3=Down(ngf*4,ngf*4,norm_layer,use_bias)
         model = []
         for i in range(n_block):
             model.append(ResBlock(ngf*4,padding_type,norm_layer,use_dropout,use_bias))
         self.resblocks = nn.Sequential(*model)
-        self.up1 = Up(ngf*4,ngf*2,norm_layer,use_bias)
-        self.up2 = Up(ngf*2,ngf,norm_layer,use_bias)
+        self.up1 = Up(ngf*4,ngf*4,norm_layer,use_bias)
+        self.up2 = Up(ngf*4,ngf*2,norm_layer,use_bias)
+        self.up3 = Up(ngf*2,ngf,norm_layer,use_bias)
         self.outc = Outconv(ngf,output_nc)
     def forward(self,x):
         out = {}
         out["in"] = self.inc(x)
         out["d1"] = self.down1(out["in"])
         out["d2"] = self.down2(out["d1"])
-        out["bottle"] = self.resblocks(out["d2"])
+        out["d3"] = self.down3(out["d2"])
+        # print(out["d3"].shape)
+        out["bottle"] = self.resblocks(out["d3"])
         out["u1"] = self.up1(out["bottle"])
         out["u2"] = self.up2(out["u1"])
-        return self.outc(out["u2"])
+        out["u3"] = self.up3(out["u2"])
+        return self.outc(out["u3"])
     def show_network(self):
         for name, module in self.named_children():
             print(name,module)
@@ -255,10 +260,12 @@ padding_type = "zero"
 norm_layer = get_norm_layer("batch")
 use_dropout = True
 use_bias = True
+# model = ResnetGenerator(input_nc,output_nc,ngf,norm_layer,)
 
 # model = ResBlock(dim,padding_type,norm_layer,use_dropout,use_bias)
 # Up = Up(3,6,norm_layer,use_bias)
-Input = torch.rand(50,3,28,28)
+Input = torch.rand(50,3,256,256)
+
 # output = model(Input)
 # Up_output = Up(Input)
 # print(Up_output.shape)
@@ -268,6 +275,8 @@ Input = torch.rand(50,3,28,28)
 # print(output.shape)
 # model = define_G(input_nc,output_nc,ngf,gpu_id="cpu")
 # model.show_network()
+# Output = model(Input)
+# print(Output.shape)
 # loss = GANLoss(use_lsgan=False)
 # model = define_D(input_nc,64,"pixel",use_sigmoid=True,gpu_id="cpu")
 # model.show_network()
