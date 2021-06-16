@@ -36,7 +36,7 @@ def rebuild_img(image_tensor):
     image_numpy = np.transpose(image_numpy,(2,0,1))
     return image_numpy
 def rebuild_grid(grid_tensor):
-    tensor = grid_tensor.mul(255).add_(0.5).clamp_(0, 255).to('cpu', torch.uint8)
+    tensor = grid_tensor.divide_(2).add_(0.5).mul(255).clamp_(0, 255).to('cpu', torch.uint8)
     return tensor
 
 class VisdomLinePlotter(object):
