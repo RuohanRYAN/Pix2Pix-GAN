@@ -55,7 +55,22 @@ class VisdomLinePlotter(object):
                 ylabel=var_name
             ))
         else:
-            self.viz.line(X=np.array([x]), Y=np.array([y]), env=self.env, win=self.plots[var_name], name=split_name, update = 'append')
+            self.viz.line(X=np.array([x]), Y=np.array([y]), env=self.env, win=self.plots[var_name], name=split_name, update='append')
+
+    def graph(self, var_name, split_name, title_name, x, y):
+        if var_name not in self.plots:
+            self.plots[var_name] = self.viz.line(X=np.array(x), Y=np.array(y), env=self.env, opts=dict(
+                legend=[split_name],
+                title=title_name,
+                xlabel='layers',
+                ylabel=var_name
+            ))
+        else:
+            self.viz.line(X=np.array(x), Y=np.array(y), env=self.env, win=self.plots[var_name], name=split_name, update="append")
+
+    def clear(self, name):
+        del self.plots[name]
+
     def image(self,images,var_name):
         image = rebuild_grid(images)
         if(var_name not in self.images):
@@ -66,3 +81,20 @@ class VisdomLinePlotter(object):
         # b = rebuild_grid(images[1])
         # self.viz.images(a,env=self.env)
         # self.vis.images(b,env=self.env)
+
+
+def plot_grad_flow(named_parameters):
+    '''Plots the gradients flowing through different layers in the net during training.
+    Can be used for checking for possible gradient vanishing / exploding problems.
+
+    Usage: Plug this function in Trainer class after loss.backwards() as
+    "plot_grad_flow(self.model.named_parameters())" to visualize the gradient flow'''
+    ave_grads = []
+    max_grads = []
+    layers = []
+    for n, p in named_parameters:
+        if (p.requires_grad) and ("bias" not in n):
+            layers.append(n)
+            ave_grads.append(p.grad.abs().mean())
+            max_grads.append(p.grad.abs().max())
+    return ave_grads, max_grads, layers

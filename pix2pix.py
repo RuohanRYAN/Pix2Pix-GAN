@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 from network import define_G, define_D, GANLoss
 from data import get_training_set, get_test_set
-from utils import save_img,VisdomLinePlotter,rebuild_grid
+from utils import save_img,VisdomLinePlotter,rebuild_grid, plot_grad_flow
 
 global plotter
 parser = argparse.ArgumentParser(description='pix2pix-pytorch-implementation')
@@ -58,7 +58,7 @@ criterionMSE = nn.MSELoss().to(device)
 optimizer_g = optim.Adam(net_g.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 optimizer_d = optim.Adam(net_d.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 
-plotter = VisdomLinePlotter(env_name="metrics")
+plotter = VisdomLinePlotter(env_name="metrics", port=8097)
 
 #### load weights
 Max = 0
@@ -109,11 +109,20 @@ for epoch in range(Max+1, opt.niter + opt.niter_decay + 1):
         optimizer_g.step()
         print("===> Epoch[{}]({}\\{}): Loss_D: {:.4f} Loss_G: {:.4f}".format(
             epoch, i, len(train_loader), loss_d.item(), loss_g.item()))
+        ave_grads_G, max_grads_G, layers_G = plot_grad_flow(net_g.named_parameters())
+        ave_grads_D, max_grads_D, layers_D = plot_grad_flow(net_d.named_parameters())
+
+        plotter.graph("g_grad", "g_grad_ave", "generator gradient", [i for i in range(len(layers_G))], ave_grads_G)
+        plotter.graph("g_grad", "g_grad_max", "generator gradient", [i for i in range(len(layers_G))], max_grads_G)
+        plotter.graph("d_grad", "d_grad_ave", "discriminator gradient", [i for i in range(len(layers_D))], ave_grads_D)
+        plotter.graph("d_grad", "d_grad_max", "discriminator gradient", [i for i in range(len(layers_D))], max_grads_D)
         plotter.plot('loss', 'd_loss', 'GAN Loss', i, loss_d.detach().data)
         plotter.plot('loss', 'g_loss', 'GAN Loss', i, loss_g.detach().data)
         plotter.image(real_a,"real")
         plotter.image(fake_b,"fake")
         plotter.image(real_b,"origin")
+        plotter.clear("g_grad")
+        plotter.clear("d_grad")
         if(i%10==0):
             fake_img = fake_b.detach()
             real_img = real_a
