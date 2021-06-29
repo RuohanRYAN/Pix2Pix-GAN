@@ -38,7 +38,7 @@ def define_G(input_nc, output_nc, ngf, norm='batch', use_dropout=False, init_typ
              gpu_id='cuda:0'):
     net = None
     norm_layer = get_norm_layer(norm)
-    net = ResnetGenerator(input_nc, output_nc, ngf=ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_block=9)
+    net = ResnetGenerator(input_nc, output_nc, ngf=ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_block=4)
     return init_net(net, init_type=init_type, gain=init_gain, gpu_id=gpu_id)
 
 
@@ -82,14 +82,14 @@ class ResnetGenerator(nn.Module):
         self.inc = Inconv(input_nc, ngf, norm_layer, use_bias)
         self.down1 = Down(ngf, ngf * 2, norm_layer, use_bias)
         self.down2 = Down(ngf * 2, ngf * 4, norm_layer, use_bias)
-        self.down3 = Down(ngf * 4, ngf * 4, norm_layer, use_bias)
+        # self.down3 = Down(ngf * 4, ngf * 4, norm_layer, use_bias)
         model = []
         for i in range(n_block):
             model.append(ResBlock(ngf * 4, padding_type, norm_layer, use_dropout, use_bias))
         self.resblocks = nn.Sequential(*model)
-        self.up1 = Up(ngf * 4, ngf * 4, norm_layer, use_bias)
-        self.up2 = Up(ngf * 4, ngf * 2, norm_layer, use_bias)
-        self.up3 = Up(ngf * 2, ngf, norm_layer, use_bias)
+        self.up1 = Up(ngf * 4, ngf * 2, norm_layer, use_bias)
+        self.up2 = Up(ngf * 2, ngf, norm_layer, use_bias)
+        # self.up3 = Up(ngf * 2, ngf, norm_layer, use_bias)
         self.outc = Outconv(ngf, output_nc)
 
     def forward(self, x):
@@ -97,13 +97,13 @@ class ResnetGenerator(nn.Module):
         out["in"] = self.inc(x)
         out["d1"] = self.down1(out["in"])
         out["d2"] = self.down2(out["d1"])
-        out["d3"] = self.down3(out["d2"])
+        # out["d3"] = self.down3(out["d2"])
         # print(out["d3"].shape)
-        out["bottle"] = self.resblocks(out["d3"])
+        out["bottle"] = self.resblocks(out["d2"])
         out["u1"] = self.up1(out["bottle"])
         out["u2"] = self.up2(out["u1"])
-        out["u3"] = self.up3(out["u2"])
-        return self.outc(out["u3"])
+        # out["u3"] = self.up3(out["u2"])
+        return self.outc(out["u2"])
 
     def show_network(self):
         for name, module in self.named_children():
@@ -298,10 +298,10 @@ class GANLoss(nn.Module):
 
 
 input_nc = 3
-output_nc = 25
+output_nc = 3
 ngf = 4
 dim = 3
-padding_type = "zero"
+# padding_type = "zero"
 norm_layer = get_norm_layer("batch")
 use_dropout = True
 use_bias = True
@@ -309,9 +309,10 @@ use_bias = True
 
 # model = ResBlock(dim,padding_type,norm_layer,use_dropout,use_bias)
 # Up = Up(3,6,norm_layer,use_bias)
-Input = torch.rand(50, 3, 256, 256)
-
+# Input = torch.rand(50, 3, 256, 256)
 # output = model(Input)
+# print(output.shape)
+# print(model.show_network())
 # Up_output = Up(Input)
 # print(Up_output.shape)
 
